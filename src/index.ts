@@ -15,7 +15,7 @@ export * from './postprocessors/JsonProjectionFilter.js'
 export * from './postprocessors/OHLCVCSVFormatter.js'
 export * from './postprocessors/ChatPostProcessor.js'
 
-export * from './jobs/JobSchedular.js'
+export * from './jobs/JobScheduler.js'
 export * from './jobs/Task.js'
 export * from './jobs/Job.js'
 
