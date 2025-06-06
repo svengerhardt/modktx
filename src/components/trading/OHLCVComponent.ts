@@ -1,4 +1,4 @@
-import ccxt, { type int } from 'ccxt'
+import ccxt from 'ccxt'
 import { Indicators } from '@ixjb94/indicators'
 import { BaseContentComponent } from '../BaseContentComponent.js'
 import { Decimal } from 'decimal.js'
