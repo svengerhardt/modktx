@@ -33,6 +33,8 @@ export class ContentUtils {
    */
   static tokenCount(prompt: string, model: TiktokenModel = 'gpt-4o'): number {
     const enc = encoding_for_model(model)
-    return enc.encode(prompt).length
+    const tokens = enc.encode(prompt)
+    enc.free()
+    return tokens.length
   }
 }
