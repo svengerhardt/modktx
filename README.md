@@ -105,6 +105,7 @@ The modktx framework is organized into modular subsystems, each responsible for 
 Reusable content blocks and structured data sources that can be composed into processing pipelines.
 
 👉 [Explore available components](docs/components.md)
+👉 [Create your own component](docs/creating-components.md)
 
 ### Post-Processing Layers
 
