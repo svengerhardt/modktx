@@ -200,23 +200,26 @@ new ContentPostProcessor(
 
 ### Purpose
 
-`PlaceholderPostProcessor` replaces placeholders in the format `{{key}}` with the matching value from a provided map.
+`PlaceholderPostProcessor` replaces placeholders in the format `{{key}}` with the matching value from a provided map. Supported keys may include letters, numbers, dots (`.`), dashes (`-`), underscores (`_`), and at signs (`@`).
 
 ### Configuration
 
 This processor is constructed with:
 
-| Parameter      | Type                     | Required | Description                         |
-| -------------- | ------------------------ | -------- | ----------------------------------- |
-| `placeholders` | `Record<string, string>` | Yes      | Map of placeholder names to values. |
+| Parameter      | Type             | Required | Description                        |
+| -------------- | ---------------- | -------- | ---------------------------------- |
+| `placeholders` | `PlaceholderMap` | Yes      | Map of placeholder keys to values.  |
 
 ### Example
 
 ```ts
 new ContentPostProcessor(
-  new TextComponent('Hello {{name}}!'),
-  new PlaceholderPostProcessor({ name: 'Alice' }),
+  new TextComponent('Hello {{user.name}}! Your email is {{email@domain}}.'),
+  new PlaceholderPostProcessor({
+    'user.name': 'Alice',
+    'email@domain': 'alice@example.com',
+  }),
 )
 ```
 
-**Output:** `Hello Alice!`
+**Output:** `Hello Alice! Your email is alice@example.com.`
