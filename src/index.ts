@@ -14,6 +14,7 @@ export * from './decorators/ContentPostProcessor.js'
 export * from './postprocessors/JsonProjectionFilter.js'
 export * from './postprocessors/OHLCVCSVFormatter.js'
 export * from './postprocessors/ChatPostProcessor.js'
+export * from './postprocessors/PlaceholderPostProcessor.js'
 
 export * from './jobs/JobScheduler.js'
 export * from './jobs/Task.js'
