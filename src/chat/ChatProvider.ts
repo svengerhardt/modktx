@@ -32,5 +32,5 @@ export interface ChatProvider {
    * TODO
    * @param prompt
    */
-  websearch(prompt: string): Promise<MessageContent>
+  websearch(prompt: string, config?: any): Promise<MessageContent>
 }
