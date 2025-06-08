@@ -4,14 +4,15 @@
 
 The Chat system provides a unified way to interact with different Large Language Model (LLM) backends via a simple interface. At its core, there are two main components:
 
-- **ChatProvider**: An interface defining methods for sending prompts to an LLM, receiving plain or structured output, and streaming responses.
+- **ChatProvider**: An interface defining methods for sending prompts to an LLM, receiving plain or structured output, streaming responses and optional web search.
+- **ChatBaseProvider**: Abstract base class implementing common `ChatProvider` functionality including Zod validation.
 - **ChatClient**: A wrapper around a `ChatProvider` implementation that exposes user-friendly methods for invoking prompts and handling streaming.
 
 By implementing the `ChatProvider` interface for different LLM backends (e.g., OpenAI, Ollama), you can swap out providers without changing the rest of your application code.
 
 ## ChatProvider Interface
 
-The `ChatProvider` interface defines three methods:
+The `ChatProvider` interface defines four methods:
 
 ```ts
 /**
@@ -43,6 +44,13 @@ export interface ChatProvider {
    * @yields Objects containing a `content` string for each streamed chunk.
    */
   stream(prompt: string): AsyncIterable<{ content: string }>
+
+  /**
+   * Performs the prompt with additional web search tools enabled.
+   * @param prompt - The query to run.
+   * @param config - Provider specific tool configuration.
+   */
+  websearch(prompt: string, config?: any): Promise<MessageContent>
 }
 ```
 
@@ -93,4 +101,25 @@ async function streamAnswer() {
 askSimpleQuestion()
 askStructuredQuestion()
 streamAnswer()
+```
+
+You can also use a provider directly without the `ChatClient` wrapper:
+
+```ts
+const provider = new OpenAIProvider({ model: 'gpt-4o-mini' })
+const res = await provider.invoke('Hello world')
+```
+
+### Web search configuration
+
+The `websearch` method enables provider specific search tools. Configuration can be supplied at call time:
+
+```ts
+let chatClient = new ChatClient(new OpenAIProvider())
+// OpenAI search context size can be overridden
+const ans = await chatClient.websearch('Latest news', { search_context_size: 'large' })
+
+// Providers can also be used directly
+const gpt = new GoogleAIProvider()
+const res = await gpt.websearch('Bitcoin price?', { googleSearch: { topN: 5 } })
 ```

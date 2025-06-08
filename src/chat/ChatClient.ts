@@ -1,6 +1,5 @@
 import type { MessageContent } from '@langchain/core/messages'
 import type { ChatProvider } from './ChatProvider.js'
-import { ZodObject } from 'zod'
 
 /**
  * ChatClient is a wrapper around a ChatProvider that provides methods to invoke LLM prompts.
@@ -43,17 +42,9 @@ export class ChatClient {
    */
   async invokeWithStructuredOutput(
     prompt: string,
-    zodObject: ZodObject<any>,
+    zodObject: any,
   ): Promise<{ [p: string]: any }> {
-    const result = await this.provider.invokeWithStructuredOutput(
-      prompt,
-      zodObject,
-    )
-    const validated = zodObject.safeParse(result)
-    if (!validated.success) {
-      throw new Error(`Zod validation failed: ${validated.error.format()}`)
-    }
-    return validated.data
+    return await this.provider.invokeWithStructuredOutput(prompt, zodObject)
   }
 
   /**
@@ -76,7 +67,7 @@ export class ChatClient {
    * TODO
    * @param prompt
    */
-  async websearch(prompt: string): Promise<MessageContent> {
-    return await this.provider.websearch(prompt)
+  async websearch(prompt: string, config?: any): Promise<MessageContent> {
+    return await this.provider.websearch(prompt, config)
   }
 }

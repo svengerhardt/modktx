@@ -3,8 +3,8 @@ import {
   ChatGoogleGenerativeAI,
   type GoogleGenerativeAIChatInput,
 } from '@langchain/google-genai'
-import type { ChatProvider } from './ChatProvider.js'
 import { ZodObject } from 'zod'
+import { ChatBaseProvider } from './ChatBaseProvider.js'
 import logger from '../logger.js'
 
 const defaultConfig: GoogleGenerativeAIChatInput = {
@@ -15,16 +15,23 @@ const defaultConfig: GoogleGenerativeAIChatInput = {
  * GoogleAIProvider implements the ChatProvider interface using the GoogleAI backend.
  * It supports plain-text invocation, structured output via Zod schemas, and streaming responses.
  */
-export class GoogleAIProvider implements ChatProvider {
+export class GoogleAIProvider extends ChatBaseProvider {
   private readonly config: GoogleGenerativeAIChatInput
-  private chat: ChatGoogleGenerativeAI
+  protected chat: ChatGoogleGenerativeAI
+  private websearchDefaults: any = { googleSearch: {} }
 
   /**
    * Constructs a new GoogleAIProvider with optional configuration overrides.
    * @param config - Partial configuration for the ChatGoogleGenerativeAI instance (e.g., model name).
    */
-  constructor(config: Partial<GoogleGenerativeAIChatInput> = {}) {
-    this.config = { ...defaultConfig, ...config }
+  constructor(
+    config: Partial<GoogleGenerativeAIChatInput & { websearch?: any }> = {},
+  ) {
+    super()
+    const { websearch, ...chatConfig } = config
+    this.config = { ...defaultConfig, ...chatConfig }
+    if (websearch)
+      this.websearchDefaults = { ...this.websearchDefaults, ...websearch }
     logger.debug(`GoogleAIProvider config=${JSON.stringify(this.config)}`)
     this.chat = new ChatGoogleGenerativeAI(this.config)
   }
@@ -34,35 +41,12 @@ export class GoogleAIProvider implements ChatProvider {
    * @param prompt - The text prompt to send to the LLM.
    * @returns A Promise resolving to the MessageContent returned by the model.
    */
-  async invoke(prompt: string): Promise<MessageContent> {
-    const response = await this.chat.invoke(prompt)
-    return response.content
-  }
-
-  /**
-   * Sends a prompt to GoogleAI with a Zod schema to enforce structured JSON output.
-   * @param prompt - The text prompt to send to the LLM.
-   * @param zodObject - A ZodObject describing the expected structure of the JSON output.
-   * @returns A Promise resolving to the parsed object matching the schema.
-   */
-  async invokeWithStructuredOutput(
+  protected override async invokeStructuredRaw(
     prompt: string,
     zodObject: ZodObject<any>,
-  ): Promise<{ [p: string]: any }> {
+  ): Promise<any> {
     const structuredLlm = this.chat.withStructuredOutput(zodObject)
     return await structuredLlm.invoke(prompt)
-  }
-
-  /**
-   * Streams the response from GoogleAI token-by-token as an async iterable.
-   * @param prompt - The text prompt to send to the LLM.
-   * @yields Chunks of the response as objects with a `content` string property.
-   */
-  async *stream(prompt: string): AsyncIterable<{ content: string }> {
-    const stream = await this.chat.stream(prompt)
-    for await (const chunk of stream) {
-      yield { content: `${chunk.content}` }
-    }
   }
 
   /**
@@ -70,8 +54,12 @@ export class GoogleAIProvider implements ChatProvider {
    * https://ai.google.dev/gemini-api/docs/grounding
    * @param prompt
    */
-  async websearch(prompt: string): Promise<MessageContent> {
-    const llmWithTools = this.chat.bindTools([{ googleSearch: {} }])
+  override async websearch(
+    prompt: string,
+    config: any = {},
+  ): Promise<MessageContent> {
+    const tool = { ...this.websearchDefaults, ...config }
+    const llmWithTools = this.chat.bindTools([tool])
     const result = await llmWithTools.invoke(prompt)
     return result.content
   }

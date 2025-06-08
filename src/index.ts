@@ -1,4 +1,5 @@
 export * from './chat/ChatClient.js'
+export * from './chat/ChatBaseProvider.js'
 export * from './chat/OllamaProvider.js'
 export * from './chat/OpenAIProvider.js'
 export * from './chat/GoogleAIProvider.js'
