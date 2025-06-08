@@ -64,8 +64,9 @@ export class ChatClient {
   }
 
   /**
-   * TODO
-   * @param prompt
+   * Performs the prompt with additional web search tools enabled.
+   * @param prompt - The query to run.
+   * @param config - Provider specific tool configuration.
    */
   async websearch(prompt: string, config?: any): Promise<MessageContent> {
     return await this.provider.websearch(prompt, config)

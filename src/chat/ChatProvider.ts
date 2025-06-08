@@ -29,8 +29,9 @@ export interface ChatProvider {
    */
   stream(prompt: string): AsyncIterable<{ content: string }>
   /**
-   * TODO
-   * @param prompt
+   * Performs the prompt with additional web search tools enabled.
+   * @param prompt - The query to run.
+   * @param config - Provider specific tool configuration.
    */
   websearch(prompt: string, config?: any): Promise<MessageContent>
 }

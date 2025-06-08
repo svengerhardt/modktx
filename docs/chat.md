@@ -1,16 +1,18 @@
-# Chat
+# LLM Abstraction Interface
 
 ## Overview
 
-The Chat system provides a unified way to interact with different Large Language Model (LLM) backends via a simple interface. At its core, there are two main components:
+This module defines a unified interface for working with Large Language Model (LLM) backends. It abstracts the differences between providers such as OpenAI and Ollama, offering a consistent API for interacting with LLMs.
 
-- **ChatProvider**: An interface defining methods for sending prompts to an LLM, receiving plain or structured output, streaming responses and optional web search.
-- **ChatBaseProvider**: Abstract base class implementing common `ChatProvider` functionality including Zod validation.
-- **ChatClient**: A wrapper around a `ChatProvider` implementation that exposes user-friendly methods for invoking prompts and handling streaming.
+There are three main components:
 
-By implementing the `ChatProvider` interface for different LLM backends (e.g., OpenAI, Ollama), you can swap out providers without changing the rest of your application code.
+- **ChatProvider**: An interface that standardizes how to send prompts and receive responses from any LLM backend. It supports plain-text responses, structured JSON output using Zod schemas, streaming responses, and optional web-based enhancements.
+- **ChatBaseProvider**: A base class that implements shared functionality for `ChatProvider` implementations, including input validation and common utilities.
+- **ChatClient**: A high-level wrapper around a `ChatProvider` instance, providing ergonomic methods for invoking prompts and handling streaming responses.
 
-## ChatProvider Interface
+By implementing the `ChatProvider` interface, different LLM providers can be integrated seamlessly, allowing easy swapping and extension without modifying application logic.
+
+## Provider Interface (`ChatProvider`)
 
 The `ChatProvider` interface defines four methods:
 
@@ -103,23 +105,11 @@ askStructuredQuestion()
 streamAnswer()
 ```
 
-You can also use a provider directly without the `ChatClient` wrapper:
-
-```ts
-const provider = new OpenAIProvider({ model: 'gpt-4o-mini' })
-const res = await provider.invoke('Hello world')
-```
-
 ### Web search configuration
 
 The `websearch` method enables provider specific search tools. Configuration can be supplied at call time:
 
 ```ts
 let chatClient = new ChatClient(new OpenAIProvider())
-// OpenAI search context size can be overridden
-const ans = await chatClient.websearch('Latest news', { search_context_size: 'large' })
-
-// Providers can also be used directly
-const gpt = new GoogleAIProvider()
-const res = await gpt.websearch('Bitcoin price?', { googleSearch: { topN: 5 } })
+const res = await chatClient.websearch('Latest news', { search_context_size: 'large' })
 ```

@@ -13,9 +13,9 @@ const defaultConfig: ChatOpenAIFields = {
  * It supports plain-text invocation, structured output via Zod schemas, and streaming responses.
  */
 export class OpenAIProvider extends ChatBaseProvider {
-  private config: ChatOpenAIFields
+  private readonly config: ChatOpenAIFields
   protected chat: ChatOpenAI
-  private websearchDefaults: any = { search_context_size: 'medium' }
+  private readonly websearchDefaults: any = { search_context_size: 'medium' }
 
   /**
    * Constructs a new OpenAIProvider with optional configuration overrides.
@@ -40,9 +40,10 @@ export class OpenAIProvider extends ChatBaseProvider {
   }
 
   /**
-   * TODO
+   * Performs the prompt with additional web search tools enabled.
+   * @param prompt - The query to run.
+   * @param config - Provider specific tool configuration.
    * https://platform.openai.com/docs/guides/tools-web-search
-   * @param prompt
    */
   override async websearch(
     prompt: string,

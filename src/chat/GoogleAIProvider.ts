@@ -50,9 +50,10 @@ export class GoogleAIProvider extends ChatBaseProvider {
   }
 
   /**
-   * TODO
+   * Performs the prompt with additional web search tools enabled.
+   * @param prompt - The query to run.
+   * @param config - Provider specific tool configuration.
    * https://ai.google.dev/gemini-api/docs/grounding
-   * @param prompt
    */
   override async websearch(
     prompt: string,

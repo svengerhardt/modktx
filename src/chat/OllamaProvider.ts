@@ -1,4 +1,3 @@
-import type { MessageContent } from '@langchain/core/messages'
 import { ChatOllama, type ChatOllamaInput } from '@langchain/ollama'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { ZodObject } from 'zod'
@@ -15,7 +14,7 @@ const defaultConfig: ChatOllamaInput = {
  * It supports plain-text invocation, structured output via Zod schemas, and streaming responses.
  */
 export class OllamaProvider extends ChatBaseProvider {
-  private config: ChatOllamaInput
+  private readonly config: ChatOllamaInput
   protected chat: ChatOllama
 
   /**
@@ -54,13 +53,5 @@ export class OllamaProvider extends ChatBaseProvider {
     } catch (err) {
       throw new Error(`Could not parse the LLM output: ${err}`)
     }
-  }
-
-  /**
-   * TODO
-   * @param prompt
-   */
-  override async websearch(prompt: string): Promise<MessageContent> {
-    throw new Error(`Not supported yet!`)
   }
 }
