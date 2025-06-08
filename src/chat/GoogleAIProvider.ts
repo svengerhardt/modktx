@@ -1,4 +1,4 @@
-import type { MessageContent } from '@langchain/core/messages'
+import { type MessageContent } from '@langchain/core/messages'
 import {
   ChatGoogleGenerativeAI,
   type GoogleGenerativeAIChatInput,
@@ -63,5 +63,16 @@ export class GoogleAIProvider implements ChatProvider {
     for await (const chunk of stream) {
       yield { content: `${chunk.content}` }
     }
+  }
+
+  /**
+   * TODO
+   * https://ai.google.dev/gemini-api/docs/grounding
+   * @param prompt
+   */
+  async websearch(prompt: string): Promise<MessageContent> {
+    const llmWithTools = this.chat.bindTools([{ googleSearch: {} }])
+    const result = await llmWithTools.invoke(prompt)
+    return result.content
   }
 }

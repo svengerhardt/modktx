@@ -76,4 +76,12 @@ export class OllamaProvider implements ChatProvider {
       yield { content: `${chunk.content}` }
     }
   }
+
+  /**
+   * TODO
+   * @param prompt
+   */
+  async websearch(prompt: string): Promise<MessageContent> {
+    throw new Error(`Not supported yet!`)
+  }
 }

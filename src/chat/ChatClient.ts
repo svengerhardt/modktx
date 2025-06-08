@@ -71,4 +71,12 @@ export class ChatClient {
     }
     console.log('')
   }
+
+  /**
+   * TODO
+   * @param prompt
+   */
+  async websearch(prompt: string): Promise<MessageContent> {
+    return await this.provider.websearch(prompt)
+  }
 }

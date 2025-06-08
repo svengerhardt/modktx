@@ -28,4 +28,9 @@ export interface ChatProvider {
    * @yields Objects containing a `content` string for each streamed chunk.
    */
   stream(prompt: string): AsyncIterable<{ content: string }>
+  /**
+   * TODO
+   * @param prompt
+   */
+  websearch(prompt: string): Promise<MessageContent>
 }

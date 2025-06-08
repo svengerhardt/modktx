@@ -61,4 +61,27 @@ export class OpenAIProvider implements ChatProvider {
       yield { content: `${chunk.content}` }
     }
   }
+
+  /**
+   * TODO
+   * https://platform.openai.com/docs/guides/tools-web-search
+   * @param prompt
+   */
+  async websearch(prompt: string): Promise<MessageContent> {
+    const llmWithTools = this.chat.bindTools([
+      { type: 'web_search_preview', search_context_size: 'medium' },
+    ])
+    const response = await llmWithTools.invoke(prompt)
+    const content = response.content;
+    if (Array.isArray(content)) {
+      // we assume that each element is a { text: string }
+      return content
+        .map((block: any) => block.text ?? '')
+        .filter((txt: string) => txt.length > 0)
+        .join('\n\n');
+    } else {
+      // content is already a string
+      return content
+    }
+  }
 }
