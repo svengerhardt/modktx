@@ -41,8 +41,7 @@ new OHLCVComponent({
   exchange: 'binance',
   symbol: 'BTC/USDT',
   timeframe: '1h',
-  inputCandles: 150,
-  outputCandles: 100,
+  candles: 100,
   indicators: {
     sma: {period: 20},
     ema: {period: 9},
@@ -62,10 +61,9 @@ new OHLCVComponent({
 | `exchange`        | `string`                 | Yes      | `binance`   | The name of the exchange to fetch data from (e.g., `"binance"`). |
 | `symbol`          | `string`                 | Yes      | `BTC/USDT`  | The trading pair symbol (e.g., `"BTC/USDC"`). |
 | `timeframe`       | `string`                 | Yes      | `1h`        | Timeframe of candles (e.g., `"1d"`, `"1h"`). |
-| `inputCandles`    | `number`                 | Yes      | `150`       | Number of historical candles used to calculate indicators. |
-| `outputCandles`   | `number`     | No       | `100`       | Number of recent entries to include in the final result (e.g., last 100 candles). |
+| `candles`         | `number`                 | Yes      | `100`       | Number of final candles to return with indicators. |
+| `buffer`          | `number`                 | No       | `50`        | Additional candles to fetch for indicator calculations (default 50). |
 | `indicators`      | `object`     | No       | -           | Configuration for optional technical indicators (see below). |
-| `sigDigits`       | `number`     | No       | `4`         | Rounds indicator values to this number of significant digits. |
 
 #### Supported Indicators
 
@@ -95,61 +93,61 @@ Example output structure for the '5m' timeframe (time is in ISO format and data 
 
 ```json
 {
-    "5m": {
-        "candles": [
-            {
-                "time": "2025-06-09T08:35:00.000Z",
-                "open": 105569.19,
-                "high": 105753.34,
-                "low": 105569.18,
-                "close": 105712.53,
-                "volume": 73.20564
-            },
-            {
-                "time": "2025-06-09T08:40:00.000Z",
-                "open": 105712.54,
-                "high": 105712.54,
-                "low": 105697.67,
-                "close": 105697.68,
-                "volume": 9.98961
-            }
-        ],
-        "indicators": [
-            {
-                "time": "2025-06-09T08:35:00.000Z",
-                "sma": 105600,
-                "ema": 105600,
-                "rsi": 63.83,
-                "macd": {
-                    "macd": 19.45,
-                    "signal": 13.91,
-                    "hist": 5.539
-                },
-                "atr": 57.88,
-                "bbands": {
-                    "lower": 105500,
-                    "middle": 105600,
-                    "upper": 105700
-                }
-            },
-            {
-                "time": "2025-06-09T08:40:00.000Z",
-                "sma": 105600,
-                "ema": 105600,
-                "rsi": 61.93,
-                "macd": {
-                    "macd": 26.75,
-                    "signal": 16.48,
-                    "hist": 10.27
-                },
-                "atr": 54.8,
-                "bbands": {
-                    "lower": 105500,
-                    "middle": 105600,
-                    "upper": 105700
-                }
-            }
-        ]
-    }
+  "5m": {
+    "candles": [
+      {
+        "time": "2025-06-09T15:40:00.000Z",
+        "open": 107760.73,
+        "high": 107767.06,
+        "low": 107708.4,
+        "close": 107719.99,
+        "volume": 23.74751
+      },
+      {
+        "time": "2025-06-09T15:45:00.000Z",
+        "open": 107720,
+        "high": 107813.94,
+        "low": 107720,
+        "close": 107767.45,
+        "volume": 19.19103
+      }
+    ],
+    "indicators": [
+      {
+        "time": "2025-06-09T15:40:00.000Z",
+        "sma": 107699.52,
+        "ema": 107777.21,
+        "rsi": 51.97,
+        "macd": {
+          "macd": 73.67,
+          "signal": 67.94,
+          "hist": 5.72
+        },
+        "atr": 165.37,
+        "bbands": {
+          "lower": 107366.7,
+          "middle": 107699.52,
+          "upper": 108032.35
+        }
+      },
+      {
+        "time": "2025-06-09T15:45:00.000Z",
+        "sma": 107724.22,
+        "ema": 107775.26,
+        "rsi": 53.72,
+        "macd": {
+          "macd": 68.89,
+          "signal": 68.13,
+          "hist": 0.76
+        },
+        "atr": 160.27,
+        "bbands": {
+          "lower": 107454.08,
+          "middle": 107724.22,
+          "upper": 107994.35
+        }
+      }
+    ]
+  }
 }
 ```

@@ -43,8 +43,7 @@ import { z } from 'zod'
         exchange: 'binance',
         symbol: 'BTC/USDT',
         timeframe: '5m',
-        inputCandles: 150,
-        outputCandles: 100,
+        candles: 100,
         indicators: {
           sma: { period: 20 },
           ema: { period: 9 },

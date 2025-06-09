@@ -51,14 +51,16 @@ new ContentPostProcessor(
   new OHLCVComponent({
     exchange: 'binance',
     symbol: 'BTC/USDT',
-    timeframe: '1d',
-    inputCandles: 60,
-    outputCandles: 10,
+    timeframe: '5m',
+    candles: 100,
     indicators: {
       sma: { period: 20 },
+      ema: { period: 9 },
       rsi: { period: 14 },
-      bbands: { period: 20, stddev: 2 },
-    },
+      atr: { period: 14 },
+      macd: { short_period: 12, long_period: 26, signal_period: 9 },
+      bbands: { period: 20, stddev: 2 }
+    }
   }),
   new OHLCVCSVFormatter(),
 )
@@ -67,8 +69,9 @@ new ContentPostProcessor(
 **Output CSV:**
 
 ```
-time,open,high,low,close,volume,sma,rsi,bbLower,bbMiddle,bbUpper
-2025-05-27T00:00:00.000Z,109434.78,110718,107516.57,108938.17,21276.65635,105900,65.77,100600,105900,111300
+time,open,high,low,close,volume,sma,ema,rsi,macd,signal,hist,atr,bbLower,bbMiddle,bbUpper
+2025-06-09T07:35:00.000Z,105583.52,105604.66,105560.39,105592.36,7.42627,105541.19,105567.17,56.54,22.74,22.66,0.08,53.48,105370.38,105541.19,105712.01
+2025-06-09T07:40:00.000Z,105592.37,105592.37,105570.13,105570.14,5.83122,105549.73,105567.77,53.97,21.68,22.47,-0.78,51.25,105391.51,105549.73,105707.95
 ...
 ```
 
@@ -115,13 +118,13 @@ new ContentPostProcessor(
     exchange: 'binance',
     symbol: 'BTC/USDT',
     timeframe: '1d',
-    inputCandles: 60,
-    outputCandles: 2,
+    candles: 2,
     indicators: {
-      sma: { period: 20 },
       rsi: { period: 14 },
-      bbands: { period: 20, stddev: 2 },
-    },
+      atr: { period: 14 },
+      macd: { short_period: 12, long_period: 26, signal_period: 9 },
+      bbands: { period: 20, stddev: 2 }
+    }
   }),
   new JsonProjectionFilter({
     time: true,
