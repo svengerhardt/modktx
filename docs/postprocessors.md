@@ -1,5 +1,7 @@
 # Post Processors
 
+Post-processors transform or refine the output of content components. They operate on structured or textual output and are commonly used for formatting, filtering, or further transformation steps.
+
 ## OHLCVCSVFormatter
 
 ### Purpose
@@ -18,7 +20,7 @@ This component is suitable for exporting trading data in a tabular format for vi
 
 - A **CSV string** with the following characteristics:
   - Always includes OHLCV columns: `time, open, high, low, close, volume`
-  - Includes only the technical indicator columns present in the input:
+  - Includes only those technical indicator columns that are present in the input:
     - `sma`
     - `ema`
     - `rsi`
@@ -201,6 +203,8 @@ new ContentPostProcessor(
 ### Purpose
 
 `PlaceholderPostProcessor` replaces placeholders in the format `{{key}}` with the matching value from a provided map. Supported keys may include letters, numbers, dots (`.`), dashes (`-`), underscores (`_`), and at signs (`@`).
+
+Placeholders are evaluated after all content components have completed execution.
 
 ### Configuration
 

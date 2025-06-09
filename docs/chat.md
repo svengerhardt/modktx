@@ -2,7 +2,7 @@
 
 ## Overview
 
-This module defines a unified interface for working with Large Language Model (LLM) backends. It abstracts the differences between providers such as OpenAI and Ollama, offering a consistent API for interacting with LLMs.
+This module defines a unified interface for working with Large Language Model (LLM) backends. It abstracts differences between providers like OpenAI and Ollama, and offers a consistent, high-level API for LLM interaction.
 
 There are three main components:
 
@@ -14,7 +14,7 @@ By implementing the `ChatProvider` interface, different LLM providers can be int
 
 ## Provider Interface (`ChatProvider`)
 
-The `ChatProvider` interface defines four methods:
+This section defines the required methods that any LLM provider must implement to conform to the `ChatProvider` interface.
 
 ```ts
 /**
@@ -85,6 +85,7 @@ const factSchema = z.object({
 
 async function askStructuredQuestion() {
   const prompt = 'Provide a JSON object with a space fact and a source URL.'
+  // Note: If the response does not match the expected schema, an error will be thrown.
   try {
     const data = await chatClient.invokeWithStructuredOutput(prompt, factSchema)
     console.log('Structured Data:', data)
@@ -107,7 +108,16 @@ streamAnswer()
 
 ### Web search configuration
 
-The `websearch` method enables provider specific search tools. Configuration can be supplied at call time:
+The `websearch` method enables provider-specific web search or grounding tools. The exact configuration options depend on the `ChatProvider` being used.
+
+For example:
+
+- **OpenAIProvider**: Supports tool use and browsing as described in the [OpenAI tools and web search guide](https://platform.openai.com/docs/guides/tools-web-search).
+- **GoogleAIProvider**: Supports grounding via Google Search or Google-provided sources, detailed in the [Gemini API grounding documentation](https://ai.google.dev/gemini-api/docs/grounding?lang=javascript).
+
+Configuration can be supplied at call time
+
+**Example**
 
 ```ts
 let chatClient = new ChatClient(new OpenAIProvider())

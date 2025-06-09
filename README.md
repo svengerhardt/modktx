@@ -1,4 +1,3 @@
-
 ![modktx logo](assets/modktx-logo.png)
 
 **modktx** (short for *Modular Knowledge Transformation eXtension*) is a modular TypeScript framework for orchestrating data pipelines, chat-based AI interactions, job scheduling, and output transformation. Its components can be used independently or composed together using processors and clients.
@@ -100,26 +99,26 @@ import { z } from 'zod'
 
 The modktx framework is organized into modular subsystems, each responsible for a distinct aspect of content orchestration and AI integration.
 
-### Data Components
+### Content Components
 
-Reusable content blocks and structured data sources that can be composed into processing pipelines.
+Reusable content components and data sources for composing structured content and data pipelines.
 
 👉 [Explore available components](docs/components.md)
 
 ### Post-Processing Layers
 
-Apply transformations, formatting, or enhancements to generated content after initial composition.
+Reusable processors for transforming, formatting, or enriching content after composition.
 
 👉 [View post-processing options](docs/postprocessors.md)
 
-### AI Interaction Interface
+### LLM Abstraction Interface
 
 A unified abstraction for interacting with large language models such as OpenAI or Ollama.
 
 👉 [Read more in the AI interface documentation](docs/chat.md)
 
-### Task Orchestration
+### Job Scheduling & Execution
 
-Schedule and manage recurring or on-demand processing jobs with support for interval-based execution.
+Define, schedule, and manage recurring or asynchronous processing tasks with support for parallel or sequential execution.
 
 👉 [Learn about the Job Scheduler](docs/jobs.md)

@@ -1,18 +1,21 @@
-# Components
+# Content Components
 
-## TextComponent
+This section describes reusable components that produce structured content or data. These components can be combined and composed into larger processing pipelines. They include both static content (e.g., predefined messages) and dynamic data sources (e.g., real-time market data).
+## Basic Components
 
-### Purpose
-`TextComponent` provides static text content, suitable for including a predefined or constant string.
+### TextComponent
 
-### Configuration
+#### Purpose
+`TextComponent` outputs static text content. It's useful for including predefined messages or constant strings.
+
+#### Configuration
 
 | Property      | Type     | Required | Default | Description                                       |
 |---------------|----------|----------|---------|---------------------------------------------------|
-| `description` | string   | No       | `''`    | A short description of the component’s purpose.  |
-| `content`     | string   | No       | `''`    | The static text content to be returned.          |
+| `description` | string   | No       | `''`    | A short explanation of the component’s role.  |
+| `content`     | string   | No       | `''`    | The static text that will be returned.          |
 
-### Example
+#### Example
 
 ```ts
 new TextComponent({
@@ -21,9 +24,11 @@ new TextComponent({
 })
 ```
 
-## OHLCVComponent
+## Trading
 
-### Purpose
+### OHLCVComponent
+
+#### Purpose
 `OHLCVComponent` fetches historical OHLCV (Open, High, Low, Close, Volume) market data from a cryptocurrency exchange using the `ccxt` library. It can also compute various technical indicators (e.g., SMA, EMA, RSI, MACD, ATR, Bollinger Bands) on the price data using the `@ixjb94/indicators` library.
 
 The result is a JSON structure that includes both the raw OHLCV candles and the computed indicator values, aligned in time.
@@ -49,7 +54,7 @@ new OHLCVComponent({
 })
 ```
 
-### Configuration
+#### Configuration
 
 | Property         | Type                     | Required | Default     | Description |
 |------------------|--------------------------|----------|-------------|-------------|
@@ -57,12 +62,12 @@ new OHLCVComponent({
 | `exchange`        | `string`                 | Yes      | `binance`   | The name of the exchange to fetch data from (e.g., `"binance"`). |
 | `symbol`          | `string`                 | Yes      | `BTC/USDT`  | The trading pair symbol (e.g., `"BTC/USDC"`). |
 | `timeframe`       | `string`                 | Yes      | `1h`        | Timeframe of candles (e.g., `"1d"`, `"1h"`). |
-| `inputCandles`    | `number`                 | Yes      | `150`       | Number of candles to fetch and use for indicator calculations. |
-| `outputCandles`   | `number`     | No       | `100`       | Number of output entries in the final result. |
+| `inputCandles`    | `number`                 | Yes      | `150`       | Number of historical candles used to calculate indicators. |
+| `outputCandles`   | `number`     | No       | `100`       | Number of recent entries to include in the final result (e.g., last 100 candles). |
 | `indicators`      | `object`     | No       | -           | Configuration for optional technical indicators (see below). |
 | `sigDigits`       | `number`     | No       | `4`         | Rounds indicator values to this number of significant digits. |
 
-### Supported Indicators
+#### Supported Indicators
 
 Each subfield under `indicators` configures one type of indicator. All are optional:
 
@@ -83,3 +88,68 @@ Each subfield under `indicators` configures one type of indicator. All are optio
 
 - **`bbands`**: `{ period: number, stddev: number }`  
   Bollinger Bands, using specified period and standard deviation.
+
+#### Example Output
+
+Example output structure for the '5m' timeframe (time is in ISO format and data arrays are aligned chronologically):
+
+```json
+{
+    "5m": {
+        "candles": [
+            {
+                "time": "2025-06-09T08:35:00.000Z",
+                "open": 105569.19,
+                "high": 105753.34,
+                "low": 105569.18,
+                "close": 105712.53,
+                "volume": 73.20564
+            },
+            {
+                "time": "2025-06-09T08:40:00.000Z",
+                "open": 105712.54,
+                "high": 105712.54,
+                "low": 105697.67,
+                "close": 105697.68,
+                "volume": 9.98961
+            }
+        ],
+        "indicators": [
+            {
+                "time": "2025-06-09T08:35:00.000Z",
+                "sma": 105600,
+                "ema": 105600,
+                "rsi": 63.83,
+                "macd": {
+                    "macd": 19.45,
+                    "signal": 13.91,
+                    "hist": 5.539
+                },
+                "atr": 57.88,
+                "bbands": {
+                    "lower": 105500,
+                    "middle": 105600,
+                    "upper": 105700
+                }
+            },
+            {
+                "time": "2025-06-09T08:40:00.000Z",
+                "sma": 105600,
+                "ema": 105600,
+                "rsi": 61.93,
+                "macd": {
+                    "macd": 26.75,
+                    "signal": 16.48,
+                    "hist": 10.27
+                },
+                "atr": 54.8,
+                "bbands": {
+                    "lower": 105500,
+                    "middle": 105600,
+                    "upper": 105700
+                }
+            }
+        ]
+    }
+}
+```

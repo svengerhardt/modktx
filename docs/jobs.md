@@ -1,6 +1,6 @@
 # JobScheduler
 
-The `JobScheduler` enables scheduling and management of jobs at fixed intervals, either in **parallel** or **sequential** execution mode.
+The `JobScheduler` allows you to define and run asynchronous tasks at fixed time intervals. Jobs can be executed in **parallel** or in a **sequential** queue.
 
 ## Example
 
@@ -8,7 +8,7 @@ The `JobScheduler` enables scheduling and management of jobs at fixed intervals,
 import { Job, JobScheduler, Task } from "modktx";
 
 (async () => {
-  // Defines a task that simulates a 10-second asynchronous operation
+  // Simulates a long-running task that takes ~10 seconds to complete
   const dummyTask: Task = {
     run: async () => {
       await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -34,16 +34,24 @@ import { Job, JobScheduler, Task } from "modktx";
 })();
 ```
 
-## Parameters
+## Job Configuration
 
-- `Job.name`: A unique name for the job.
-- `Job.interval`: Time interval as a string (`'1m'`, `'5m'`, `'1h'`, etc.).
-- `Job.execute`: An async function that contains the logic to run.
-- `JobScheduler`: Can be initialized with multiple jobs and run in:
-  - `'parallel'` – run jobs concurrently.
-  - `'sequential'` – run jobs one after another using a queue.
+| Property     | Type     | Description                                     |
+|--------------|----------|-------------------------------------------------|
+| `name`       | string   | Unique name for identifying the job             |
+| `interval`   | string   | Execution interval (`"1m"`, `"5m"`, `"1h"`, …) |
+| `execute`    | function | Async function executed on each run             |
+
+## JobScheduler Configuration
+
+| Parameter          | Type     | Description                                                              |
+|--------------------|----------|--------------------------------------------------------------------------|
+| `jobs`             | `Job[]`  | List of jobs to be scheduled                                             |
+| `mode`             | string   | `'parallel'` to run concurrently, `'sequential'` to queue job execution  |
 
 ## Notes
 
-- Jobs will continue running on the specified interval until `scheduler.stop()` is called.
-- In `'sequential'` mode, overlapping execution is prevented automatically.
+- Jobs repeat indefinitely based on the specified interval.
+- Use `scheduler.stop()` to halt execution.
+- In `'sequential'` mode, the scheduler automatically queues overlapping runs.
+- It's recommended to handle errors inside the `execute` function to avoid unhandled rejections.
