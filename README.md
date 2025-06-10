@@ -1,4 +1,4 @@
-![modktx logo](assets/modktx-logo.png)
+<img src="assets/modktx-logo.svg" width="200">
 
 **modktx** (short for *Modular Knowledge Transformation eXtension*) is a modular TypeScript framework for orchestrating data pipelines, chat-based AI interactions, job scheduling, and output transformation. Its components can be used independently or composed together using processors and clients.
 
