@@ -85,8 +85,18 @@ export class OHLCVComponent extends BaseContentComponent<OHLCVComponentConfig> {
   /**
    * Create a new OHLCVComponent.
    * @param config Partial configuration to override defaults.
+   * @param exchangeFactory Factory creating ccxt exchange instances. Defaults to new exchange by id.
+   * @param indicatorsFactory Factory creating an Indicators instance. Defaults to new Indicators().
    */
-  constructor(config: Partial<OHLCVComponentConfig> = {}) {
+  constructor(
+    config: Partial<OHLCVComponentConfig> = {},
+    private readonly exchangeFactory: (id: string) => any = (id: string) => {
+      const CCXT = ccxt as any
+      return new CCXT[id]()
+    },
+    private readonly indicatorsFactory: () => Indicators = () =>
+      new Indicators(),
+  ) {
     const merged = { ...defaultConfig, ...config }
     super(merged.description, merged)
   }
@@ -97,8 +107,7 @@ export class OHLCVComponent extends BaseContentComponent<OHLCVComponentConfig> {
    */
   protected async generateContent(): Promise<string> {
     try {
-      const CCXT = ccxt as any
-      const exchange = new CCXT[this.config.exchange]()
+      const exchange = this.exchangeFactory(this.config.exchange)
       await exchange.fetchMarkets()
 
       // Retrieve raw candles (candles + buffer)
@@ -152,7 +161,7 @@ export class OHLCVComponent extends BaseContentComponent<OHLCVComponentConfig> {
       const scaledLowPrices = lowPrices.map((p) => p * scaleFactor)
       const scaledClosePrices = closePrices.map((p) => p * scaleFactor)
 
-      const ta = new Indicators()
+      const ta = this.indicatorsFactory()
 
       // Container for calculated values
       const computed: {

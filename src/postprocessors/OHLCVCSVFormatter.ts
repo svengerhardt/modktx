@@ -78,6 +78,7 @@ interface IntervalData {
  * Only includes columns for indicators actually present in the input.
  */
 export class OHLCVCSVFormatter implements PostProcessor {
+  constructor(private readonly parse: (input: string) => any = JSON.parse) {}
   /**
    * Takes a JSON string containing OHLCV and indicator data, and returns CSV-formatted text.
    * @param content - A JSON string with a single top-level key (e.g., "5m") mapping to IntervalData.
@@ -85,7 +86,7 @@ export class OHLCVCSVFormatter implements PostProcessor {
    */
   async postProcess(content: string): Promise<string> {
     // Parse the incoming JSON to an object keyed by interval (e.g., "5m").
-    const parsed = JSON.parse(content) as Record<string, IntervalData>
+    const parsed = this.parse(content) as Record<string, IntervalData>
     const intervalKeys = Object.keys(parsed)
 
     // If there is no interval data, return an empty string.
