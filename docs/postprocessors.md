@@ -27,8 +27,7 @@ This component is suitable for exporting trading data in a tabular format for vi
     - `macd, signal, hist`
     - `atr`
     - `bbLower, bbMiddle, bbUpper`
-  - Rows are aligned by `time`, and missing values are represented as empty fields.
-
+  
 ### Supported Indicators per Row
 
 If present, the following indicators are added to each row (after OHLCV):
