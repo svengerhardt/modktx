@@ -5,17 +5,17 @@ import type { PostProcessor } from './PostProcessor.js'
  */
 interface Candle {
   /** Timestamp of the candle in ISO 8601 format */
-  time: string
+  time?: string
   /** Opening price */
-  open: number
+  open?: number
   /** Highest price */
-  high: number
+  high?: number
   /** Lowest price */
-  low: number
+  low?: number
   /** Closing price */
-  close: number
+  close?: number
   /** Trading volume */
-  volume: number
+  volume?: number
 }
 
 /**
@@ -47,7 +47,7 @@ interface BBands {
  */
 interface Indicator {
   /** Timestamp matching the corresponding candle */
-  time: string
+  time?: string
   /** Simple Moving Average */
   sma?: number
   /** Exponential Moving Average */
@@ -122,21 +122,47 @@ export class OHLCVCSVFormatter implements PostProcessor {
       }
     }
 
-    // Build a lookup map from timestamp to Indicator object for quick access.
+    // Determine if indicators still contain a time property after any prior filtering.
+    let useIndexMapping = false
     const indicatorMap: Record<string, Indicator> = {}
-    for (const ind of indicators) {
-      indicatorMap[ind.time] = ind
+    if (indicators.length > 0) {
+      if (indicators[0]!.time !== undefined) {
+        for (const ind of indicators) {
+          if (ind.time !== undefined) {
+            indicatorMap[ind.time] = ind
+          }
+        }
+      } else {
+        useIndexMapping = true
+      }
     }
 
-    // Construct the CSV header row, always including OHLCV fields, then only present indicators.
-    const headerColumns: string[] = [
-      'time',
-      'open',
-      'high',
-      'low',
-      'close',
-      'volume',
-    ]
+    // Determine which OHLCV fields are present in the candle data.
+    let hasTimeField = false
+    let hasOpenField = false
+    let hasHighField = false
+    let hasLowField = false
+    let hasCloseField = false
+    let hasVolumeField = false
+
+    if (candles.length > 0) {
+      const c = candles[0]!
+      hasTimeField = c.time !== undefined
+      hasOpenField = c.open !== undefined
+      hasHighField = c.high !== undefined
+      hasLowField = c.low !== undefined
+      hasCloseField = c.close !== undefined
+      hasVolumeField = c.volume !== undefined
+    }
+
+    // Construct the CSV header row, only including fields that exist in the input.
+    const headerColumns: string[] = []
+    if (hasTimeField) headerColumns.push('time')
+    if (hasOpenField) headerColumns.push('open')
+    if (hasHighField) headerColumns.push('high')
+    if (hasLowField) headerColumns.push('low')
+    if (hasCloseField) headerColumns.push('close')
+    if (hasVolumeField) headerColumns.push('volume')
     if (hasSma) headerColumns.push('sma')
     if (hasEma) headerColumns.push('ema')
     if (hasRsi) headerColumns.push('rsi')
@@ -153,34 +179,40 @@ export class OHLCVCSVFormatter implements PostProcessor {
     lines.push(headerColumns.join(','))
 
     // Iterate over each candle to create one CSV row per candle.
-    for (const candle of candles) {
-      // Base values: time and OHLCV.
-      const rowValues: Array<string | number> = [
-        candle.time,
-        candle.open,
-        candle.high,
-        candle.low,
-        candle.close,
-        candle.volume,
-      ]
+    for (let i = 0; i < candles.length; i++) {
+      const candle = candles[i]!
+      const rowValues: Array<string | number> = []
+
+      if (hasTimeField) rowValues.push(candle.time ?? '')
+      if (hasOpenField) rowValues.push(candle.open ?? '')
+      if (hasHighField) rowValues.push(candle.high ?? '')
+      if (hasLowField) rowValues.push(candle.low ?? '')
+      if (hasCloseField) rowValues.push(candle.close ?? '')
+      if (hasVolumeField) rowValues.push(candle.volume ?? '')
 
       // Only append indicator values if any indicators exist in the input.
       if (indicators.length > 0) {
-        // Find indicator data for this candle's timestamp, or use an empty object if missing.
-        const ind: Indicator = indicatorMap[candle.time] ?? ({} as Indicator)
+        // Find indicator data matching this candle.
+        let ind: Indicator | undefined
+        if (useIndexMapping) {
+          ind = indicators[i]
+        } else if (candle.time !== undefined) {
+          ind = indicatorMap[candle.time]
+        }
+        const indicator = ind ?? ({} as Indicator)
 
         if (hasSma) {
-          rowValues.push(ind.sma ?? '')
+          rowValues.push(indicator.sma ?? '')
         }
         if (hasEma) {
-          rowValues.push(ind.ema ?? '')
+          rowValues.push(indicator.ema ?? '')
         }
         if (hasRsi) {
-          rowValues.push(ind.rsi ?? '')
+          rowValues.push(indicator.rsi ?? '')
         }
         if (hasMacd) {
           // Use default empty MACD object to avoid undefined errors.
-          const macdObj: MACD = ind.macd ?? {}
+          const macdObj: MACD = indicator.macd ?? {}
           rowValues.push(
             macdObj.macd ?? '',
             macdObj.signal ?? '',
@@ -188,11 +220,11 @@ export class OHLCVCSVFormatter implements PostProcessor {
           )
         }
         if (hasAtr) {
-          rowValues.push(ind.atr ?? '')
+          rowValues.push(indicator.atr ?? '')
         }
         if (hasBBands) {
           // Use default empty BBands object to avoid undefined errors.
-          const bb: BBands = ind.bbands ?? {}
+          const bb: BBands = indicator.bbands ?? {}
           rowValues.push(bb.lower ?? '', bb.middle ?? '', bb.upper ?? '')
         }
       }
