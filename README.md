@@ -18,9 +18,8 @@ Here's an example that demonstrates how to compose content using static prompts 
 ```ts
 import {
   OHLCVComponent,
-  ContentComposer,
+  ContentBuilder,
   TextComponent,
-  ContentPostProcessor,
   OHLCVCSVFormatter,
   ChatClient, OpenAIProvider,
 } from 'modktx'
@@ -28,18 +27,17 @@ import {
 import { z } from 'zod'
 
 ;(async () => {
-  let contentComposer = new ContentComposer()
+  let builder = new ContentBuilder()
 
-  contentComposer.add(
+  builder.add(
     new TextComponent({
       content:
         'You are an expert in crypto futures trading. Please analyze the provided CSV data and give a trade recommendation.',
     }),
   )
 
-  contentComposer.add(
-    new ContentPostProcessor(
-      new OHLCVComponent({
+  builder.add(
+    new OHLCVComponent({
         exchange: 'binance',
         symbol: 'BTC/USDT',
         timeframe: '5m',
@@ -52,12 +50,10 @@ import { z } from 'zod'
           macd: { short_period: 12, long_period: 26, signal_period: 9 },
           bbands: { period: 20, stddev: 2 },
         },
-      }),
-      new OHLCVCSVFormatter(),
-    ),
+      }).postProcess(new OHLCVCSVFormatter()),
   )
 
-  let content = await contentComposer.compose()
+  let content = await builder.compose()
 
   let chatClient = new ChatClient(
     new OpenAIProvider()

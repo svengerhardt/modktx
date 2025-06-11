@@ -16,7 +16,7 @@ export class TextComponent extends BaseContentComponent<TextComponentConfig> {
     super(mergedConfig.description, mergedConfig)
   }
 
-  async getContent(): Promise<string> {
+  protected async generateContent(): Promise<string> {
     return this.config.content
   }
 }

@@ -47,8 +47,7 @@ If present, the following indicators are added to each row (after OHLCV):
 ### Example
 
 ```ts
-new ContentPostProcessor(
-  new OHLCVComponent({
+new OHLCVComponent({
     exchange: 'binance',
     symbol: 'BTC/USDT',
     timeframe: '5m',
@@ -61,9 +60,10 @@ new ContentPostProcessor(
       macd: { short_period: 12, long_period: 26, signal_period: 9 },
       bbands: { period: 20, stddev: 2 }
     }
-  }),
-  new OHLCVCSVFormatter(),
-)
+})
+  .postProcess(
+    new OHLCVCSVFormatter(),
+  )
 ```
 
 **Output CSV:**
@@ -113,8 +113,7 @@ Each key in the projection object may be:
 ### Example
 
 ```ts
-new ContentPostProcessor(
-  new OHLCVComponent({
+new OHLCVComponent({
     exchange: 'binance',
     symbol: 'BTC/USDT',
     timeframe: '1d',
@@ -125,13 +124,14 @@ new ContentPostProcessor(
       macd: { short_period: 12, long_period: 26, signal_period: 9 },
       bbands: { period: 20, stddev: 2 }
     }
-  }),
-  new JsonProjectionFilter({
-    time: true,
-    close: true,
-    rsi: true,
-  }),
-)
+})
+  .postProcess(
+    new JsonProjectionFilter({
+      time: true,
+      close: true,
+      rsi: true,
+    }),
+  )
 ```
 
 **Output JSON:**
@@ -190,15 +190,15 @@ This post-processor is initialized with:
 ### Example
 
 ```ts
-new ContentPostProcessor(
-  new TextComponent(
-    'Please write a professional summary of the following content...',
-  ),
-  new ChatPostProcessor(
-    'You are a helpful assistant that rewrites content in a formal and concise manner.',
-    new OpenAIChatProvider({ model: 'gpt-4o' }),
-  ),
+new TextComponent(
+  'Please write a professional summary of the following content...',
 )
+  .postProcess(
+    new ChatPostProcessor(
+      'You are a helpful assistant that rewrites content in a formal and concise manner.',
+      new OpenAIChatProvider({ model: 'gpt-4o' }),
+    ),
+  )
 ```
 
 ## PlaceholderPostProcessor
@@ -220,13 +220,13 @@ This processor is constructed with:
 ### Example
 
 ```ts
-new ContentPostProcessor(
-  new TextComponent('Hello {{user.name}}! Your email is {{email@domain}}.'),
-  new PlaceholderPostProcessor({
-    'user.name': 'Alice',
-    'email@domain': 'alice@example.com',
-  }),
-)
+new TextComponent('Hello {{user.name}}! Your email is {{email@domain}}.')
+  .postProcess(
+    new PlaceholderPostProcessor({
+      'user.name': 'Alice',
+      'email@domain': 'alice@example.com',
+    }),
+  )
 ```
 
 **Output:** `Hello Alice! Your email is alice@example.com.`
