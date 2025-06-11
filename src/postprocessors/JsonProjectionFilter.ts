@@ -111,42 +111,37 @@ export class JsonProjectionFilter implements PostProcessor {
    * - done.
    */
   async postProcess(content: string): Promise<string> {
-    try {
-      const parsed = this.parse(content)
-      const filteredRoot = this.filterNode(parsed)
+    const parsed = this.parse(content)
+    const filteredRoot = this.filterNode(parsed)
 
-      if (filteredRoot === null) {
-        return `No matching fields found in json data`
-      }
-
-      // If a limit is defined, we apply it **to all arrays** in the result,
-      // by again recursively walking through the filtered result
-      // and keeping only the last N elements of each array.
-      if (this.limit !== undefined) {
-        const limit = this.limit
-        const applyLimit = (node: any): any => {
-          if (Array.isArray(node)) {
-            // If array is longer than limit, keep only the last limit entries
-            const sliced =
-              node.length > limit ? node.slice(-limit) : node.slice()
-            return sliced.map((elem) => applyLimit(elem))
-          }
-          if (node && typeof node === 'object') {
-            const o: any = {}
-            for (const k of Object.keys(node)) {
-              o[k] = applyLimit(node[k])
-            }
-            return o
-          }
-          return node
-        }
-        const limited = applyLimit(filteredRoot)
-        return this.stringify(limited)
-      }
-
-      return this.stringify(filteredRoot)
-    } catch (err) {
-      return `Error parsing json data`
+    if (filteredRoot === null) {
+      return `No matching fields found in json data`
     }
+
+    // If a limit is defined, we apply it **to all arrays** in the result,
+    // by again recursively walking through the filtered result
+    // and keeping only the last N elements of each array.
+    if (this.limit !== undefined) {
+      const limit = this.limit
+      const applyLimit = (node: any): any => {
+        if (Array.isArray(node)) {
+          // If array is longer than limit, keep only the last limit entries
+          const sliced = node.length > limit ? node.slice(-limit) : node.slice()
+          return sliced.map((elem) => applyLimit(elem))
+        }
+        if (node && typeof node === 'object') {
+          const o: any = {}
+          for (const k of Object.keys(node)) {
+            o[k] = applyLimit(node[k])
+          }
+          return o
+        }
+        return node
+      }
+      const limited = applyLimit(filteredRoot)
+      return this.stringify(limited)
+    }
+
+    return this.stringify(filteredRoot)
   }
 }

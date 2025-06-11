@@ -108,201 +108,196 @@ export class OHLCVComponent extends BaseContentComponent<OHLCVComponentConfig> {
    * @returns A promise resolving to a JSON string with candle data and indicators.
    */
   protected async generateContent(): Promise<string> {
-    try {
-      const exchange = this.exchangeFactory(this.config.exchange)
-      await exchange.fetchMarkets()
+    const exchange = this.exchangeFactory(this.config.exchange)
+    await exchange.fetchMarkets()
 
-      // Retrieve raw candles (candles + buffer)
-      const fetchCount = this.config.candles + (this.config.buffer ?? 50)
-      const rawOHLCV: any[] = await exchange.fetchOHLCV(
-        this.config.symbol,
-        this.config.timeframe,
-        undefined,
-        fetchCount,
-      )
+    // Retrieve raw candles (candles + buffer)
+    const fetchCount = this.config.candles + (this.config.buffer ?? 50)
+    const rawOHLCV: any[] = await exchange.fetchOHLCV(
+      this.config.symbol,
+      this.config.timeframe,
+      undefined,
+      fetchCount,
+    )
 
-      // Convert to readable format
-      const candles = rawOHLCV.map((c) => {
-        const [ts, open, high, low, close, volume] = c
-        return {
-          time: new Date(ts).toISOString(),
-          open,
-          high,
-          low,
-          close,
-          volume,
-        }
-      })
-
-      // Determine precision for price rounding
-      let priceDecimals: number
-      const marketInfo = exchange.markets[this.config.symbol]
-      if (
-        marketInfo?.precision?.price !== undefined &&
-        typeof marketInfo.precision.price === 'number'
-      ) {
-        const p = marketInfo.precision.price
-        priceDecimals =
-          p >= 1 && Number.isInteger(p) ? p : new Decimal(p).decimalPlaces()
-      } else {
-        const sample = candles[0]?.close
-        priceDecimals =
-          sample && sample.toString().split('.')[1]
-            ? sample.toString().split('.')[1].length
-            : 4
+    // Convert to readable format
+    const candles = rawOHLCV.map((c) => {
+      const [ts, open, high, low, close, volume] = c
+      return {
+        time: new Date(ts).toISOString(),
+        open,
+        high,
+        low,
+        close,
+        volume,
       }
+    })
 
-      // Price arrays for indicators
-      const closePrices = candles.map((c) => c.close)
-      const highPrices = candles.map((c) => c.high)
-      const lowPrices = candles.map((c) => c.low)
-      // Scale factor for small-price assets to improve numeric stability in ATR
-      const scaleFactor = closePrices[0] < 1 ? Math.pow(10, priceDecimals) : 1
-      // Pre-scaled arrays for ATR
-      const scaledHighPrices = highPrices.map((p) => p * scaleFactor)
-      const scaledLowPrices = lowPrices.map((p) => p * scaleFactor)
-      const scaledClosePrices = closePrices.map((p) => p * scaleFactor)
-
-      const ta = this.indicatorsFactory()
-
-      // Container for calculated values
-      const computed: {
-        sma?: number[]
-        ema?: number[]
-        rsi?: number[]
-        macd?: { macd: number[]; signal: number[]; hist: number[] }
-        atr?: number[]
-        bbands?: { lower: number[]; middle: number[]; upper: number[] }
-      } = {}
-
-      // SMA
-      if (this.config.indicators?.sma) {
-        const vals = await ta.sma(
-          closePrices,
-          this.config.indicators!.sma!.period,
-        )
-        computed.sma = vals
-      }
-
-      // EMA
-      if (this.config.indicators?.ema) {
-        const vals = await ta.ema(
-          closePrices,
-          this.config.indicators!.ema!.period,
-        )
-        computed.ema = vals
-      }
-
-      // RSI
-      if (this.config.indicators?.rsi) {
-        const vals = await ta.rsi(
-          closePrices,
-          this.config.indicators!.rsi!.period,
-        )
-        computed.rsi = vals
-      }
-
-      // MACD
-      if (this.config.indicators?.macd) {
-        const { short_period, long_period, signal_period } =
-          this.config.indicators!.macd!
-        const [m, s, h] = (await ta.macd(
-          closePrices,
-          short_period,
-          long_period,
-          signal_period,
-          closePrices.length,
-        )) as [number[], number[], number[]]
-        computed.macd = { macd: m, signal: s, hist: h }
-      }
-
-      // ATR
-      if (this.config.indicators?.atr) {
-        const scaledVals = await ta.atr(
-          scaledHighPrices,
-          scaledLowPrices,
-          scaledClosePrices,
-          this.config.indicators!.atr!.period,
-        )
-        // Downscale results
-        computed.atr = scaledVals.map((v) => v / scaleFactor)
-      }
-
-      // Bollinger Bands
-      if (this.config.indicators?.bbands) {
-        const { period, stddev } = this.config.indicators!.bbands!
-        const [l, m, u] = (await ta.bbands(closePrices, period, stddev)) as [
-          number[],
-          number[],
-          number[],
-        ]
-        computed.bbands = { lower: l, middle: m, upper: u }
-      }
-
-      // Help function for rounding
-      const roundTo = (num: number, dec: number): number =>
-        new Decimal(num).toDecimalPlaces(dec).toNumber()
-
-      // Trim to the last `candles` entries
-      const sliceStart = Math.max(candles.length - this.config.candles, 0)
-      const trimmedCandles = candles.slice(sliceStart)
-
-      const trimmed: any[] = []
-      for (let i = 0; i < trimmedCandles.length; i++) {
-        const entry: any = { time: trimmedCandles[i]!.time }
-
-        if (computed.sma) {
-          const arr = computed.sma.slice(-this.config.candles)
-          entry.sma = roundTo(arr[i]!, priceDecimals)
-        }
-        if (computed.ema) {
-          const arr = computed.ema.slice(-this.config.candles)
-          entry.ema = roundTo(arr[i]!, priceDecimals)
-        }
-        if (computed.rsi) {
-          const arr = computed.rsi.slice(-this.config.candles)
-          entry.rsi = roundTo(arr[i]!, 2)
-        }
-        if (computed.macd) {
-          const mArr = computed.macd.macd.slice(-this.config.candles)
-          const sArr = computed.macd.signal.slice(-this.config.candles)
-          const hArr = computed.macd.hist.slice(-this.config.candles)
-          entry.macd = {
-            macd: roundTo(mArr[i]!, priceDecimals),
-            signal: roundTo(sArr[i]!, priceDecimals),
-            hist: roundTo(hArr[i]!, priceDecimals),
-          }
-        }
-        if (computed.atr) {
-          const arr = computed.atr.slice(-this.config.candles)
-          entry.atr = roundTo(arr[i]!, priceDecimals)
-        }
-        if (computed.bbands) {
-          const lArr = computed.bbands.lower.slice(-this.config.candles)
-          const mArr = computed.bbands.middle.slice(-this.config.candles)
-          const uArr = computed.bbands.upper.slice(-this.config.candles)
-          entry.bbands = {
-            lower: roundTo(lArr[i]!, priceDecimals),
-            middle: roundTo(mArr[i]!, priceDecimals),
-            upper: roundTo(uArr[i]!, priceDecimals),
-          }
-        }
-
-        trimmed.push(entry)
-      }
-
-      const result = {
-        [this.config.timeframe]: {
-          candles: trimmedCandles,
-          indicators: trimmed,
-        },
-      }
-
-      logger.debug(JSON.stringify(result))
-      return JSON.stringify(result)
-    } catch (err) {
-      logger.error(`Error in OHLCVComponent: ${err}`)
-      return `{"error":"Failed to fetch or compute indicators"}`
+    // Determine precision for price rounding
+    let priceDecimals: number
+    const marketInfo = exchange.markets[this.config.symbol]
+    if (
+      marketInfo?.precision?.price !== undefined &&
+      typeof marketInfo.precision.price === 'number'
+    ) {
+      const p = marketInfo.precision.price
+      priceDecimals =
+        p >= 1 && Number.isInteger(p) ? p : new Decimal(p).decimalPlaces()
+    } else {
+      const sample = candles[0]?.close
+      priceDecimals =
+        sample && sample.toString().split('.')[1]
+          ? sample.toString().split('.')[1].length
+          : 4
     }
+
+    // Price arrays for indicators
+    const closePrices = candles.map((c) => c.close)
+    const highPrices = candles.map((c) => c.high)
+    const lowPrices = candles.map((c) => c.low)
+    // Scale factor for small-price assets to improve numeric stability in ATR
+    const scaleFactor = closePrices[0] < 1 ? Math.pow(10, priceDecimals) : 1
+    // Pre-scaled arrays for ATR
+    const scaledHighPrices = highPrices.map((p) => p * scaleFactor)
+    const scaledLowPrices = lowPrices.map((p) => p * scaleFactor)
+    const scaledClosePrices = closePrices.map((p) => p * scaleFactor)
+
+    const ta = this.indicatorsFactory()
+
+    // Container for calculated values
+    const computed: {
+      sma?: number[]
+      ema?: number[]
+      rsi?: number[]
+      macd?: { macd: number[]; signal: number[]; hist: number[] }
+      atr?: number[]
+      bbands?: { lower: number[]; middle: number[]; upper: number[] }
+    } = {}
+
+    // SMA
+    if (this.config.indicators?.sma) {
+      const vals = await ta.sma(
+        closePrices,
+        this.config.indicators!.sma!.period,
+      )
+      computed.sma = vals
+    }
+
+    // EMA
+    if (this.config.indicators?.ema) {
+      const vals = await ta.ema(
+        closePrices,
+        this.config.indicators!.ema!.period,
+      )
+      computed.ema = vals
+    }
+
+    // RSI
+    if (this.config.indicators?.rsi) {
+      const vals = await ta.rsi(
+        closePrices,
+        this.config.indicators!.rsi!.period,
+      )
+      computed.rsi = vals
+    }
+
+    // MACD
+    if (this.config.indicators?.macd) {
+      const { short_period, long_period, signal_period } =
+        this.config.indicators!.macd!
+      const [m, s, h] = (await ta.macd(
+        closePrices,
+        short_period,
+        long_period,
+        signal_period,
+        closePrices.length,
+      )) as [number[], number[], number[]]
+      computed.macd = { macd: m, signal: s, hist: h }
+    }
+
+    // ATR
+    if (this.config.indicators?.atr) {
+      const scaledVals = await ta.atr(
+        scaledHighPrices,
+        scaledLowPrices,
+        scaledClosePrices,
+        this.config.indicators!.atr!.period,
+      )
+      // Downscale results
+      computed.atr = scaledVals.map((v) => v / scaleFactor)
+    }
+
+    // Bollinger Bands
+    if (this.config.indicators?.bbands) {
+      const { period, stddev } = this.config.indicators!.bbands!
+      const [l, m, u] = (await ta.bbands(closePrices, period, stddev)) as [
+        number[],
+        number[],
+        number[],
+      ]
+      computed.bbands = { lower: l, middle: m, upper: u }
+    }
+
+    // Help function for rounding
+    const roundTo = (num: number, dec: number): number =>
+      new Decimal(num).toDecimalPlaces(dec).toNumber()
+
+    // Trim to the last `candles` entries
+    const sliceStart = Math.max(candles.length - this.config.candles, 0)
+    const trimmedCandles = candles.slice(sliceStart)
+
+    const trimmed: any[] = []
+    for (let i = 0; i < trimmedCandles.length; i++) {
+      const entry: any = { time: trimmedCandles[i]!.time }
+
+      if (computed.sma) {
+        const arr = computed.sma.slice(-this.config.candles)
+        entry.sma = roundTo(arr[i]!, priceDecimals)
+      }
+      if (computed.ema) {
+        const arr = computed.ema.slice(-this.config.candles)
+        entry.ema = roundTo(arr[i]!, priceDecimals)
+      }
+      if (computed.rsi) {
+        const arr = computed.rsi.slice(-this.config.candles)
+        entry.rsi = roundTo(arr[i]!, 2)
+      }
+      if (computed.macd) {
+        const mArr = computed.macd.macd.slice(-this.config.candles)
+        const sArr = computed.macd.signal.slice(-this.config.candles)
+        const hArr = computed.macd.hist.slice(-this.config.candles)
+        entry.macd = {
+          macd: roundTo(mArr[i]!, priceDecimals),
+          signal: roundTo(sArr[i]!, priceDecimals),
+          hist: roundTo(hArr[i]!, priceDecimals),
+        }
+      }
+      if (computed.atr) {
+        const arr = computed.atr.slice(-this.config.candles)
+        entry.atr = roundTo(arr[i]!, priceDecimals)
+      }
+      if (computed.bbands) {
+        const lArr = computed.bbands.lower.slice(-this.config.candles)
+        const mArr = computed.bbands.middle.slice(-this.config.candles)
+        const uArr = computed.bbands.upper.slice(-this.config.candles)
+        entry.bbands = {
+          lower: roundTo(lArr[i]!, priceDecimals),
+          middle: roundTo(mArr[i]!, priceDecimals),
+          upper: roundTo(uArr[i]!, priceDecimals),
+        }
+      }
+
+      trimmed.push(entry)
+    }
+
+    const result = {
+      [this.config.timeframe]: {
+        candles: trimmedCandles,
+        indicators: trimmed,
+      },
+    }
+
+    logger.debug(JSON.stringify(result))
+    return JSON.stringify(result)
   }
 }
