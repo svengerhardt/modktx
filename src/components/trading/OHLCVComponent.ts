@@ -85,14 +85,16 @@ export class OHLCVComponent extends BaseContentComponent<OHLCVComponentConfig> {
   /**
    * Create a new OHLCVComponent.
    * @param config Partial configuration to override defaults.
-   * @param exchangeFactory Factory creating ccxt exchange instances. Defaults to new exchange by id.
+   * @param exchangeFactory Factory creating ccxt exchange instances. Defaults to new exchange by exchange name.
    * @param indicatorsFactory Factory creating an Indicators instance. Defaults to new Indicators().
    */
   constructor(
     config: Partial<OHLCVComponentConfig> = {},
-    private readonly exchangeFactory: (id: string) => any = (id: string) => {
+    private readonly exchangeFactory: (exchange: string) => any = (
+      exchange: string,
+    ) => {
       const CCXT = ccxt as any
-      return new CCXT[id]()
+      return new CCXT[exchange]()
     },
     private readonly indicatorsFactory: () => Indicators = () =>
       new Indicators(),

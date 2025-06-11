@@ -18,6 +18,8 @@ export class ChatPostProcessor implements PostProcessor {
    *
    * @param {string} prompt - The prompt text that will be prepended to the input content.
    * @param {ChatProvider} provider - The chat provider used by the ChatClient to process the content.
+   * @param {(provider: ChatProvider) => ChatClient} clientFactory - Optional factory function to create
+   * a ChatClient instance using the given ChatProvider.
    */
   constructor(
     prompt: string,
