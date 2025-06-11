@@ -21,19 +21,19 @@ import {
   ContentBuilder,
   TextComponent,
   OHLCVCSVFormatter,
-  ChatClient, OpenAIProvider,
+  ChatClient, OpenAIProvider
 } from 'modktx'
 
 import { z } from 'zod'
 
-;(async () => {
+(async () => {
   let builder = new ContentBuilder()
 
   builder.add(
     new TextComponent({
       content:
         'You are an expert in crypto futures trading. Please analyze the provided CSV data and give a trade recommendation.',
-    }),
+    })
   )
 
   builder.add(
@@ -48,9 +48,9 @@ import { z } from 'zod'
           rsi: { period: 14 },
           atr: { period: 14 },
           macd: { short_period: 12, long_period: 26, signal_period: 9 },
-          bbands: { period: 20, stddev: 2 },
-        },
-      }).postProcess(new OHLCVCSVFormatter()),
+          bbands: { period: 20, stddev: 2 }
+        }
+      }).postProcess(new OHLCVCSVFormatter())
   )
 
   let content = await builder.compose()
@@ -71,8 +71,8 @@ import { z } from 'zod'
         .enum(['long', 'short', 'wait'])
         .describe(
           'The trade direction: "long" for buying, "short" for selling, or "wait" if no action is recommended.',
-        ),
-    }),
+        )
+    })
   )
 
   console.log(result)

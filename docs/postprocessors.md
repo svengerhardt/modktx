@@ -61,7 +61,7 @@ new OHLCVComponent({
     }
 })
   .postProcess(
-    new OHLCVCSVFormatter(),
+    new OHLCVCSVFormatter()
   )
 ```
 
@@ -128,8 +128,8 @@ new OHLCVComponent({
     new JsonProjectionFilter({
       time: true,
       close: true,
-      rsi: true,
-    }),
+      rsi: true
+    })
   )
 ```
 
@@ -190,13 +190,13 @@ This post-processor is initialized with:
 
 ```ts
 new TextComponent(
-  'Please write a professional summary of the following content...',
+  'Please write a professional summary of the following content...'
 )
   .postProcess(
     new ChatPostProcessor(
       'You are a helpful assistant that rewrites content in a formal and concise manner.',
-      new OpenAIChatProvider({ model: 'gpt-4o' }),
-    ),
+      new OpenAIChatProvider({ model: 'gpt-4o' })
+    )
   )
 ```
 
@@ -223,8 +223,8 @@ new TextComponent('Hello {{user.name}}! Your email is {{email@domain}}.')
   .postProcess(
     new PlaceholderPostProcessor({
       'user.name': 'Alice',
-      'email@domain': 'alice@example.com',
-    }),
+      'email@domain': 'alice@example.com'
+    })
   )
 ```
 

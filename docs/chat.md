@@ -37,7 +37,7 @@ export interface ChatProvider {
    */
   invokeWithStructuredOutput(
     prompt: string,
-    zodObject: ZodObject<any>,
+    zodObject: ZodObject<any>
   ): Promise<{ [key: string]: any }>
 
   /**
@@ -80,7 +80,7 @@ async function askSimpleQuestion() {
 // 4. Structured output using Zod schema.
 const factSchema = z.object({
   fact: z.string(),
-  source: z.string().url(),
+  source: z.string().url()
 })
 
 async function askStructuredQuestion() {
