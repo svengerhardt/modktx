@@ -4,7 +4,7 @@ export * from './chat/OllamaProvider.js'
 export * from './chat/OpenAIProvider.js'
 export * from './chat/GoogleAIProvider.js'
 
-export * from './builder/ContentComposer.js'
+export * from './builder/ContentBuilder.js'
 
 export * from './components/ContentComponent.js'
 export * from './components/BaseContentComponent.js'
@@ -12,7 +12,6 @@ export * from './components/BaseContentComponent.js'
 export * from './components/general/TextComponent.js'
 export * from './components/trading/OHLCVComponent.js'
 
-export * from './decorators/ContentPostProcessor.js'
 export * from './postprocessors/JsonProjectionFilter.js'
 export * from './postprocessors/OHLCVCSVFormatter.js'
 export * from './postprocessors/ChatPostProcessor.js'

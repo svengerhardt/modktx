@@ -95,7 +95,7 @@ export class OHLCVComponent extends BaseContentComponent<OHLCVComponentConfig> {
    * Fetches OHLCV data plus indicators and returns a JSON string.
    * @returns A promise resolving to a JSON string with candle data and indicators.
    */
-  async getContent(): Promise<string> {
+  protected async generateContent(): Promise<string> {
     try {
       const CCXT = ccxt as any
       const exchange = new CCXT[this.config.exchange]()
