@@ -137,6 +137,15 @@ export class OHLCVCSVFormatter implements PostProcessor {
       }
     }
 
+    // Helper to resolve timestamp from candle or indicator
+    const getRowTime = (i: number): string | undefined => {
+      const c = candles[i]
+      if (c?.time !== undefined) {
+        return c.time
+      }
+      return indicators[i]?.time
+    }
+
     // Determine which OHLCV fields are present in the candle data.
     let hasTimeField = false
     let hasOpenField = false
@@ -153,6 +162,9 @@ export class OHLCVCSVFormatter implements PostProcessor {
       hasLowField = c.low !== undefined
       hasCloseField = c.close !== undefined
       hasVolumeField = c.volume !== undefined
+    } else if (indicators.length > 0) {
+      // No candles, but indicators might provide time
+      hasTimeField = indicators[0]!.time !== undefined
     }
 
     // Construct the CSV header row, only including fields that exist in the input.
@@ -178,12 +190,14 @@ export class OHLCVCSVFormatter implements PostProcessor {
     // Push the header row as the first line.
     lines.push(headerColumns.join(','))
 
-    // Iterate over each candle to create one CSV row per candle.
-    for (let i = 0; i < candles.length; i++) {
-      const candle = candles[i]!
+    const rowCount = Math.max(candles.length, indicators.length)
+
+    for (let i = 0; i < rowCount; i++) {
+      const candle = candles[i] ?? {}
+      const rowTime = getRowTime(i)
       const rowValues: Array<string | number> = []
 
-      if (hasTimeField) rowValues.push(candle.time ?? '')
+      if (hasTimeField) rowValues.push(rowTime ?? '')
       if (hasOpenField) rowValues.push(candle.open ?? '')
       if (hasHighField) rowValues.push(candle.high ?? '')
       if (hasLowField) rowValues.push(candle.low ?? '')
@@ -196,8 +210,8 @@ export class OHLCVCSVFormatter implements PostProcessor {
         let ind: Indicator | undefined
         if (useIndexMapping) {
           ind = indicators[i]
-        } else if (candle.time !== undefined) {
-          ind = indicatorMap[candle.time]
+        } else if (rowTime !== undefined) {
+          ind = indicatorMap[rowTime]
         }
         const indicator = ind ?? ({} as Indicator)
 
