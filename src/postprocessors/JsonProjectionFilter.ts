@@ -19,10 +19,19 @@ export type Projection = {
 export class JsonProjectionFilter implements PostProcessor {
   private readonly projection: Projection
   private readonly limit?: number
+  private readonly parse: (input: string) => any
+  private readonly stringify: (input: any) => string
 
-  constructor(projection: Projection, limit?: number) {
+  constructor(
+    projection: Projection,
+    limit?: number,
+    parse: (input: string) => any = JSON.parse,
+    stringify: (input: any) => string = JSON.stringify,
+  ) {
     this.projection = projection
     this.limit = limit
+    this.parse = parse
+    this.stringify = stringify
   }
 
   /**
@@ -103,7 +112,7 @@ export class JsonProjectionFilter implements PostProcessor {
    */
   async postProcess(content: string): Promise<string> {
     try {
-      const parsed = JSON.parse(content)
+      const parsed = this.parse(content)
       const filteredRoot = this.filterNode(parsed)
 
       if (filteredRoot === null) {
@@ -132,10 +141,10 @@ export class JsonProjectionFilter implements PostProcessor {
           return node
         }
         const limited = applyLimit(filteredRoot)
-        return JSON.stringify(limited)
+        return this.stringify(limited)
       }
 
-      return JSON.stringify(filteredRoot)
+      return this.stringify(filteredRoot)
     } catch (err) {
       return `Error parsing json data`
     }

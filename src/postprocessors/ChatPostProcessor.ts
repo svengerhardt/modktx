@@ -11,16 +11,25 @@ import { ChatClient } from '../chat/ChatClient.js'
 export class ChatPostProcessor implements PostProcessor {
   private readonly prompt: string
   private readonly provider: ChatProvider
+  private readonly clientFactory: (provider: ChatProvider) => ChatClient
 
   /**
    * Creates an instance of ChatPostProcessor.
    *
    * @param {string} prompt - The prompt text that will be prepended to the input content.
    * @param {ChatProvider} provider - The chat provider used by the ChatClient to process the content.
+   * @param {(provider: ChatProvider) => ChatClient} clientFactory - Optional factory function to create
+   * a ChatClient instance using the given ChatProvider.
    */
-  constructor(prompt: string, provider: ChatProvider) {
+  constructor(
+    prompt: string,
+    provider: ChatProvider,
+    clientFactory: (provider: ChatProvider) => ChatClient = (p) =>
+      new ChatClient(p),
+  ) {
     this.prompt = prompt
     this.provider = provider
+    this.clientFactory = clientFactory
   }
 
   /**
@@ -30,8 +39,8 @@ export class ChatPostProcessor implements PostProcessor {
    * @returns {Promise<string>} - A promise that resolves with the processed content as a string.
    */
   async postProcess(content: string): Promise<string> {
-    const chatClient = new ChatClient(this.provider)
-    let result = await chatClient.invoke(`${this.prompt}\n\n${content}`)
+    const chatClient = this.clientFactory(this.provider)
+    const result = await chatClient.invoke(`${this.prompt}\n\n${content}`)
     return result.toString()
   }
 }
