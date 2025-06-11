@@ -8,34 +8,38 @@ jest.unstable_mockModule('ccxt', () => ({
 let OHLCVComponent: typeof import('../trading/OHLCVComponent.js').OHLCVComponent
 
 beforeAll(async () => {
+  // Dynamically import the component after mocks are in place
   const mod = await import('../trading/OHLCVComponent.js')
   OHLCVComponent = mod.OHLCVComponent
 })
 
 describe('OHLCVComponent', () => {
   it('fetches candles and computes indicators', async () => {
-    // fixture candles: 7 entries used for 5 result candles
+    // Generate 7 mock OHLCV entries spaced 5 minutes apart
     const baseTime = Date.parse('2020-01-01T00:00:00Z')
     const raw = Array.from({ length: 7 }, (_, i) => {
       const n = i + 1
       return [baseTime + i * 300000, n, n + 0.5, n - 0.5, n + 0.2, 100]
     })
 
+    // Create a mock exchange with stubbed methods
     const mockExchange = {
       markets: { 'BTC/USDT': { precision: { price: 2 } } },
-      fetchMarkets: jest.fn().mockResolvedValue([]),
-      fetchOHLCV: jest.fn().mockResolvedValue(raw),
+      fetchMarkets: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+      fetchOHLCV: jest.fn<() => Promise<typeof raw>>().mockResolvedValue(raw),
     }
 
+    // Factory function returning the mock exchange
     const exchangeFactory = () => mockExchange
 
+    // Create the OHLCVComponent with indicator configuration
     const comp = new OHLCVComponent(
       {
         exchange: 'binance',
         symbol: 'BTC/USDT',
         timeframe: '5m',
-        candles: 5,
-        buffer: 2,
+        candles: 5, // number of result candles
+        buffer: 2, // additional candles used for calculation
         indicators: {
           sma: { period: 3 },
           ema: { period: 3 },
@@ -48,9 +52,13 @@ describe('OHLCVComponent', () => {
       exchangeFactory,
     )
 
+    // Get the computed output from the component
     const out = JSON.parse(await comp.getContent())
 
+    // Assert that fetchOHLCV was called
     expect(mockExchange.fetchOHLCV).toHaveBeenCalled()
+
+    // Check that the returned candles and indicators match the expected output
     expect(out).toEqual({
       '5m': {
         candles: [
