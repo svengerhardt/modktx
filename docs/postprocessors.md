@@ -19,7 +19,7 @@ This component is suitable for exporting trading data in a tabular format for vi
 ### Output Format
 
 - A **CSV string** with the following characteristics:
-  - Always includes OHLCV columns: `time, open, high, low, close, volume`
+  - Includes OHLCV columns only for fields present in the input (e.g., `time`, `open`, `high`, `low`, `close`, `volume`)
   - Includes only those technical indicator columns that are present in the input:
     - `sma`
     - `ema`
