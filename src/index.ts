@@ -22,6 +22,6 @@ export * from './jobs/Task.js'
 export * from './jobs/Job.js'
 
 export * from './utils/ContentUtils.js'
-export * from './utils/ContentFileLoader.js'
+export * from './utils/ContentFileManager.js'
 
 export * from './logger.js'
