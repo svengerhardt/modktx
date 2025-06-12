@@ -2,7 +2,7 @@
 
 ## Overview
 
-This module defines a unified interface for working with Large Language Model (LLM) backends. It abstracts differences between providers like OpenAI and Ollama, and offers a consistent, high-level API for LLM interaction.
+This module defines a unified interface for working with Large Language Model (LLM) backends. It abstracts differences between providers like OpenAI, GoogleAI and Ollama, and offers a consistent, high-level API for LLM interaction.
 
 There are three main components:
 
@@ -55,6 +55,15 @@ export interface ChatProvider {
   websearch(prompt: string, config?: any): Promise<MessageContent>
 }
 ```
+
+## Supported LLM Backends
+
+The current implementation integrates with the following LLM providers via **LangChain**:
+
+- **OpenAIProvider** – authenticates via the environment variable `OPENAI_API_KEY`.
+- **GoogleAIProvider** – authenticates via the environment variable `GOOGLE_API_KEY`.
+- **OllamaProvider** – operates locally; no environment configuration is required.
+
 
 ## Example Usage
 
