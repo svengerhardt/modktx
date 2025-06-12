@@ -66,4 +66,63 @@ describe('JsonProjectionFilter', () => {
       },
     })
   })
+
+  it('supports nested projection objects on a specific key', async () => {
+    const input = {
+      root: {
+        indicators: [
+          { time: 't1', macd: { macd: 1, signal: 2, hist: 3 } },
+          { time: 't2', macd: { macd: 4, signal: 5, hist: 6 } },
+        ],
+      },
+    }
+
+    const filter = new JsonProjectionFilter({
+      indicators: {
+        time: true,
+        macd: { signal: true },
+      },
+    })
+
+    const result = JSON.parse(await filter.postProcess(JSON.stringify(input)))
+    expect(result).toEqual({
+      root: {
+        indicators: [
+          { time: 't1', macd: { signal: 2 } },
+          { time: 't2', macd: { signal: 5 } },
+        ],
+      },
+    })
+  })
+
+  it('combines global and nested projections correctly', async () => {
+    const input = {
+      root: {
+        indicators: [
+          { time: 't1', bbands: { lower: 0, middle: 1, upper: 2 }, rsi: 30 },
+          { time: 't2', bbands: { lower: 3, middle: 4, upper: 5 }, rsi: 35 },
+        ],
+        candles: [
+          { time: 't1', open: 1, close: 2 },
+          { time: 't2', open: 3, close: 4 },
+        ],
+      },
+    }
+
+    const filter = new JsonProjectionFilter({
+      time: true,
+      bbands: { upper: true },
+    })
+
+    const result = JSON.parse(await filter.postProcess(JSON.stringify(input)))
+    expect(result).toEqual({
+      root: {
+        indicators: [
+          { time: 't1', bbands: { upper: 2 } },
+          { time: 't2', bbands: { upper: 5 } },
+        ],
+        candles: [{ time: 't1' }, { time: 't2' }],
+      },
+    })
+  })
 })

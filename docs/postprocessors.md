@@ -83,6 +83,7 @@ time,open,high,low,close,volume,sma,ema,rsi,macd,signal,hist,atr,bbLower,bbMiddl
 - Preserving the overall structure of the input JSON,
 - Traversing deeply nested objects and arrays,
 - Retaining only the keys specified in a given `projection` schema,
+- Fully supports nested projection objects, enabling field‑level selection within targeted sub‑trees,
 - Optionally applying a limit to the number of items kept in any arrays.
 
 It is especially suitable for narrowing down large and deeply nested JSON datasets to relevant fields for downstream use.
@@ -115,52 +116,55 @@ Each key in the projection object may be:
 new OHLCVComponent({
     exchange: 'binance',
     symbol: 'BTC/USDT',
-    timeframe: '1d',
-    candles: 2,
+    timeframe: '1h',
+    candles: 3,
     indicators: {
-      rsi: { period: 14 },
-      atr: { period: 14 },
       macd: { short_period: 12, long_period: 26, signal_period: 9 },
       bbands: { period: 20, stddev: 2 }
     }
 })
   .postProcess(
     new JsonProjectionFilter({
-      time: true,
-      close: true,
-      rsi: true
+      time: true,                // keep all timestamps everywhere
+      close: true,               // keep closing prices in `candles`
+      bbands: { upper: true },   // from every `bbands` object keep only the upper band
+      macd: { signal: true }     // from every `macd` object keep only the signal line
     })
   )
 ```
 
-**Output JSON:**
+**Output JSON (schematic):**
 
 ```
 {
-    "1d": {
-        "candles": [
-            {
-                "time": "2025-06-04T00:00:00.000Z",
-                "close": 104696.86
-            },
-            {
-                "time": "2025-06-05T00:00:00.000Z",
-                "close": 104646.53
-            }
-        ],
-        "indicators": [
-            {
-                "time": "2025-06-04T00:00:00.000Z",
-                "rsi": 51.77
-            },
-            {
-                "time": "2025-06-05T00:00:00.000Z",
-                "rsi": 51.6
-            }
-        ]
-    }
+  "1h": {
+    "candles": [
+      { "time": "2025-06-12T08:00:00.000Z", "close": 107808.01 },
+      { "time": "2025-06-12T09:00:00.000Z", "close": 107783.34 },
+      { "time": "2025-06-12T10:00:00.000Z", "close": 107722.16 }
+    ],
+    "indicators": [
+      {
+        "time": "2025-06-12T08:00:00.000Z",
+        "macd": { "signal": -29.09 },
+        "bbands": { "upper": 108010.71 }
+      },
+      {
+        "time": "2025-06-12T09:00:00.000Z",
+        "macd": { "signal": -24.97 },
+        "bbands": { "upper": 107995.98 }
+      },
+      {
+        "time": "2025-06-12T10:00:00.000Z",
+        "macd": { "signal": -21.48 },
+        "bbands": { "upper": 107973.40 }
+      }
+    ]
+  }
 }
 ```
+
+This example demonstrates how global keys (`time`, `close`) and nested projections (`bbands.upper`, `macd.signal`) are combined.
 
 ## ChatPostProcessor
 
