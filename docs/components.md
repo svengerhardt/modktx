@@ -24,6 +24,66 @@ new TextComponent({
 })
 ```
 
+### RESTComponent
+
+#### Purpose
+`RESTComponent` performs HTTP requests to external REST APIs and returns the
+response. It supports multiple authentication schemes (none, API‑Key, Basic,
+Bearer, JWT) and allows full parameterisation of the request. The component can be used to pull live data from third‑party services for
+inclusion in a content pipeline.
+
+#### Configuration
+
+| Property | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `description` | `string` | No | `''` | Short explanation of the component’s role. |
+| `url` | `string` | **Yes** | – | Target endpoint URL. |
+| `method` | `string` | No | `'GET'` | HTTP verb (`GET`, `POST`, `PUT`, …). |
+| `params` | `object` | No | `{}` | Query‑string parameters. |
+| `data` | `any` | No | `null` | Request body (ignored for `GET`). |
+| `headers` | `object` | No | `{}` | Additional HTTP headers. |
+| `timeout` | `number` | No | `10000` | Timeout in ms. |
+| `auth` | `object` | No | `{ type: 'none' }` | Authentication descriptor (see below). |
+
+**Auth sub‑types**
+
+```ts
+// Exactly one of the following objects can be provided
+{ type: 'none' }
+
+{ type: 'apiKey', value: string, name?: string,
+  location?: 'header' | 'query' }
+
+{ type: 'basic', value: string } // pre‑encoded
+{ type: 'basic', username: string, password: string } // raw creds
+
+{ type: 'bearer', value: string } // OAuth token
+
+{ type: 'jwt', token?: string, username?: string, password?: string,
+  tokenEndpoint?: string } // automatic login & refresh
+```
+
+*Notes*  
+* JWT tokens are auto‑refreshed when they are within 60 seconds of expiry.  
+* API‑Keys can be placed either in a header (default **`x-api-key`**) or as a
+  query parameter.
+
+#### Example
+
+```typescript
+new RESTComponent({
+  description: 'Fetch all trades',
+  url: 'https://example.com/api/v1/trades',
+  method: 'GET',
+  timeout: 5000,
+  auth: {
+    type: 'jwt',
+    username: 'user',
+    password: 'user'
+  }
+})
+```
+
 ## Trading
 
 ### OHLCVComponent

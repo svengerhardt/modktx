@@ -10,6 +10,7 @@ export * from './components/ContentComponent.js'
 export * from './components/BaseContentComponent.js'
 
 export * from './components/general/TextComponent.js'
+export * from './components/general/RESTComponent.js'
 export * from './components/trading/OHLCVComponent.js'
 
 export * from './postprocessors/JsonProjectionFilter.js'
